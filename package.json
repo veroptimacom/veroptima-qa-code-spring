@@ -1,0 +1,19 @@
+{
+  "name": "veroptima-qa-code-spring",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "description": "Standalone public-MIT Spring (java-parser) code-enumerator backend for @qa-expert/code-enumerator-contract. A pure, deterministic, parser-driven branch enumerator over a CodeSource of .java files; passes the contract conformance suite with zero core edits.",
+  "license": "MIT",
+  "scripts": {
+    "typecheck": "bun x tsc --noEmit",
+    "test": "bun test"
+  },
+  "peerDependencies": {
+    "@qa-expert/code-enumerator-contract": "^0.1.0"
+  },
+  "dependencies": {
+    "java-parser": "^2.3.3",
+    "zod": "^4.4.3"
+  }
+}
