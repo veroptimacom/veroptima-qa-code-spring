@@ -1,18 +1,23 @@
 {
   "name": "veroptima-qa-code-spring",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "description": "Standalone public-MIT Spring (java-parser) code-enumerator backend against the PUBLIC @qa-expert/code-enumerator-spi. A pure, deterministic, parser-driven branch enumerator over a CodeSource of .java files that emits RAW branches (NO id); the host computes branch identity and lifts. ZERO core model IP.",
   "license": "MIT",
+  "files": [
+    "dist",
+    "code-enumerator-plugin.json",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
     "typecheck": "bun x tsc --noEmit",
     "test": "bun test"
   },
-  "peerDependencies": {
-    "@qa-expert/code-enumerator-spi": "^0.1.0"
-  },
-  "dependencies": {
+  "devDependencies": {
+    "@qa-expert/code-enumerator-spi": "^0.1.0",
+    "@qa-expert/plugin-contract": "^0.1.0",
     "java-parser": "^2.3.3",
     "zod": "^4.4.3"
   }

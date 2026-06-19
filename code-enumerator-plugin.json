@@ -1,7 +1,7 @@
 {
   "name": "veroptima-qa-code-spring",
-  "version": "0.1.0",
-  "entry": "./src/index.ts",
+  "version": "0.1.1",
+  "entry": "./dist/index.js",
   "family": "code-enumerator",
   "subkind": "java-parser",
   "contractVersion": "0.1.0"
