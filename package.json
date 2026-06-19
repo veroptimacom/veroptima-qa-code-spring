@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "type": "module",
   "main": "src/index.ts",
-  "description": "Standalone public-MIT Spring (java-parser) code-enumerator backend for @qa-expert/code-enumerator-contract. A pure, deterministic, parser-driven branch enumerator over a CodeSource of .java files; passes the contract conformance suite with zero core edits.",
+  "description": "Standalone public-MIT Spring (java-parser) code-enumerator backend against the PUBLIC @qa-expert/code-enumerator-spi. A pure, deterministic, parser-driven branch enumerator over a CodeSource of .java files that emits RAW branches (NO id); the host computes branch identity and lifts. ZERO core model IP.",
   "license": "MIT",
   "scripts": {
     "typecheck": "bun x tsc --noEmit",
     "test": "bun test"
   },
   "peerDependencies": {
-    "@qa-expert/code-enumerator-contract": "^0.1.0"
+    "@qa-expert/code-enumerator-spi": "^0.1.0"
   },
   "dependencies": {
     "java-parser": "^2.3.3",

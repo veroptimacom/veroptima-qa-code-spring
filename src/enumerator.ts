@@ -1,10 +1,12 @@
 // veroptima-qa-code-spring — the Spring (backend) branch enumerator.
 //
 // A PURE, parser-driven walk over a `CodeSource` of `.java` files that emits the
-// FIXED set of path-changing `Branch`es with AST provenance. The parse is
+// FIXED set of path-changing RAW branches (NO id) with AST provenance. The parse is
 // `java-parser` (a Chevrotain CST); the walk is DETERMINISTIC (document order,
 // child-index-addressed `node_path`), never an LLM re-read. Same `CodeSource` →
-// byte-identical SORTED `branches[]`, every run.
+// byte-identical `branches[]` SET, every run. The plugin emits RAW against the
+// PUBLIC `@qa-expert/code-enumerator-spi` ONLY; the HOST computes branch identity,
+// lifts each `RawBranch` → the private id-bearing `Branch`, and sorts after lifting.
 //
 // ── How the CST is walked (the uniqueness scheme)
 // `java-parser`'s `parse()` returns a CST whose CST nodes carry `.name` (the rule
@@ -15,8 +17,8 @@
 // and append a `name[index]` segment per step. So every node owns a UNIQUE path
 // like `compilationUnit/.../methodDeclaration[2]/.../ifStatement[0]` — two `if`s
 // on the SAME line get distinct paths (distinct child indices), which is what
-// keeps their `branchId`s from fusing (the completeness property the
-// `assertNodePathsPopulated` guard protects).
+// keeps their host-assigned ids from fusing (the completeness property the
+// host's node-path guard protects after the lift).
 //
 // ── Reading `condition` text (the declared seam)
 // CST token order is post-order-ish (operators trail operands), so joining token
@@ -27,14 +29,13 @@
 
 import { parse } from "java-parser";
 
-import { branchId, type Branch, type BranchKind } from "@qa-expert/feature-model";
-
 import {
-  sortBranchesById,
   type BranchEnumerator,
+  type BranchKind,
   type CodeSource,
-  type EnumeratorResult,
-} from "@qa-expert/code-enumerator-contract";
+  type RawBranch,
+  type RawEnumeratorResult,
+} from "@qa-expert/code-enumerator-spi";
 
 // ---------------------------------------------------------------------------
 // Minimal structural view of the java-parser CST (we do not depend on its types)
@@ -178,7 +179,9 @@ function tokenText(node: CstNode): string {
 // The deterministic CST walk — collect a raw record per path-changing node
 // ---------------------------------------------------------------------------
 
-interface RawBranch {
+/** A path-changing site as the CST walk collects it — structural fields only,
+ *  pre-lift (no id). Mapped to the SPI `RawBranch` in `enumerate()`. */
+interface WalkRecord {
   kind: BranchKind;
   condition: string;
   arms: string[];
@@ -307,8 +310,8 @@ function implementsAppEntry(classDecl: CstNode): boolean {
  * collect a `RawBranch` per path-changing site. Pure: depends only on the CST +
  * the original source content.
  */
-function walk(root: CstNode, content: string): RawBranch[] {
-  const out: RawBranch[] = [];
+function walk(root: CstNode, content: string): WalkRecord[] {
+  const out: WalkRecord[] = [];
 
   const recurse = (node: CstNode, path: string): void => {
     switch (node.name) {
@@ -453,8 +456,12 @@ function walk(root: CstNode, content: string): RawBranch[] {
 export function createSpringEnumerator(): BranchEnumerator {
   return {
     stack: "spring",
-    enumerate(source: CodeSource): EnumeratorResult {
-      const branches: Branch[] = [];
+    enumerate(source: CodeSource): RawEnumeratorResult {
+      // RAW emission: the plugin computes NO id. The HOST lifts each RawBranch to
+      // the private id-bearing Branch (computing branch identity) and sorts after lifting.
+      // We emit in the DETERMINISTIC structural order the walk produces (file order,
+      // then document order within each file) — determinism of the SET is the contract.
+      const branches: RawBranch[] = [];
 
       const javaFiles = source.files.filter((f) => f.path.endsWith(".java"));
 
@@ -470,31 +477,24 @@ export function createSpringEnumerator(): BranchEnumerator {
 
         const raws = walk(root, file.content);
         for (const raw of raws) {
-          const provenance = {
-            file: file.path,
-            line: raw.line,
-            node_kind: raw.nodeKind,
-            node_path: raw.nodePath,
-          };
           branches.push({
-            id: branchId({
-              stack: "spring",
-              kind: raw.kind,
-              condition: raw.condition,
-              provenance,
-            }),
             stack: "spring",
             kind: raw.kind,
             condition: raw.condition,
             arms: raw.arms,
-            provenance,
+            provenance: {
+              file: file.path,
+              line: raw.line,
+              node_kind: raw.nodeKind,
+              node_path: raw.nodePath,
+            },
           });
         }
       }
 
       return {
         stack: "spring",
-        branches: sortBranchesById(branches),
+        branches,
         scannedFiles: javaFiles.length,
       };
     },

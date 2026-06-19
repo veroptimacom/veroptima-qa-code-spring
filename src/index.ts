@@ -1,15 +1,16 @@
 /**
  * veroptima-qa-code-spring — a STANDALONE public-MIT Spring (`java-parser`)
- * `code-enumerator` backend for `@qa-expert/code-enumerator-contract`.
+ * `code-enumerator` backend against the PUBLIC `@qa-expert/code-enumerator-spi`.
  *
- * The deterministic, parser-driven Spring branch enumerator (extracted out of the
- * monorepo, behind the now-open contract) wrapped as the contract's default-export
+ * The deterministic, parser-driven Spring branch enumerator (depends ONLY on the
+ * public SPI — ZERO core model IP) wrapped as the SPI's default-export
  * `CodeEnumeratorFactory`. `create()` validates `config.stack === "spring"` and
- * returns the pure `springEnumerator`; any other stack is rejected.
+ * returns the pure `springEnumerator` that emits RAW branches (NO id); the HOST
+ * computes branch identity and lifts. Any other stack is rejected.
  *
  * DETERMINISM (the load-bearing property): no clock, no Math.random, no LLM. The
- * branch SET — and so the id set — is a pure function of `source` alone, so two
- * enumerations are byte-identical.
+ * raw branch SET is a pure function of `source` alone, so two enumerations are
+ * byte-identical.
  *
  * Author: Ricardo Gusmao / Veroptima
  * License: MIT
@@ -20,7 +21,7 @@ import {
   type CodeEnumeratorCapabilities,
   type CodeEnumeratorFactory,
   type EnumeratorConfig,
-} from "@qa-expert/code-enumerator-contract";
+} from "@qa-expert/code-enumerator-spi";
 import {
   type PluginContext,
   type SecretResolver,
